@@ -92,11 +92,14 @@ def main():
     current_piece = Piece(random.choice(shapes))
     next_piece = Piece(random.choice(shapes))
     run = True
+    fall_speed = 0.27
+    fall_time = 0
+    
     while run:
         grid = create_grid(locked_positions)
-        fall_speed = 0.27
-        fall_time = clock.get_rawtime()
+        fall_time += clock.get_rawtime()
         clock.tick()
+
         if fall_time / 1000 >= fall_speed:
             fall_time = 0
             if not current_piece.collision(0, 1, grid):
@@ -107,6 +110,7 @@ def main():
                 next_piece = Piece(random.choice(shapes))
                 if current_piece.collision(0, 0, grid):
                     run = False
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -122,6 +126,7 @@ def main():
                     if current_piece.collision(0, 0, grid):
                         for _ in range(3):
                             current_piece.rotate()
+
         draw_grid(screen, grid)
         for y, row in enumerate(current_piece.shape):
             for x, cell in enumerate(row):
@@ -129,6 +134,7 @@ def main():
                     pygame.draw.rect(screen, current_piece.color, (current_piece.x * block_size + x * block_size, current_piece.y * block_size + y * block_size, block_size, block_size), 0)
         pygame.display.update()
         cleared = clear_rows(grid, locked_positions)
+
     pygame.quit()
 
 screen = pygame.display.set_mode((screen_width, screen_height))
