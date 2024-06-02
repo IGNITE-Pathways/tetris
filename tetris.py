@@ -68,15 +68,17 @@ def create_grid(locked_positions):
     grid = [[0 for _ in range(screen_width // block_size)] for _ in range(screen_height // block_size)]
     for y, row in enumerate(locked_positions):
         for x, cell in enumerate(row):
-            grid[y][x] = cell
+            if cell:
+                grid[y][x] = cell
     return grid
 
 def clear_rows(grid, locked_positions):
     cleared = 0
-    for y, row in enumerate(grid[::-1]):
+    for y in range(len(grid) - 1, -1, -1):
+        row = grid[y]
         if 0 not in row:
             cleared += 1
-            del grid[len(grid) - 1 - y]
+            del grid[y]
             grid.insert(0, [0 for _ in range(screen_width // block_size)])
     return cleared
 
@@ -105,10 +107,10 @@ def main():
             if not current_piece.collision(0, 1, grid):
                 current_piece.y += 1
             else:
-                current_piece.lock(grid)
+                current_piece.lock(locked_positions)
                 current_piece = next_piece
                 next_piece = Piece(random.choice(shapes))
-                if current_piece.collision(0, 0, grid):
+                if current_piece.collision(0, 0, locked_positions):
                     run = False
 
         for event in pygame.event.get():
