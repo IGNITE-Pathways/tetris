@@ -78,8 +78,14 @@ def clear_rows(grid, locked_positions):
         row = grid[y]
         if 0 not in row:
             cleared += 1
-            del grid[y]
-            grid.insert(0, [0 for _ in range(screen_width // block_size)])
+            # Move all rows above this one down
+            for move_y in range(y, 0, -1):
+                for x in range(len(grid[move_y])):
+                    grid[move_y][x] = grid[move_y - 1][x]
+                    locked_positions[move_y][x] = locked_positions[move_y - 1][x]
+            # Clear the top row after moving everything down
+            grid[0] = [0 for _ in range(screen_width // block_size)]
+            locked_positions[0] = [0 for _ in range(screen_width // block_size)]
     return cleared
 
 def draw_grid(surface, grid):
