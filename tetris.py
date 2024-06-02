@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 # Initialize Pygame
 pygame.init()
@@ -74,24 +75,36 @@ def create_grid(locked_positions):
 
 def clear_rows(grid, locked_positions):
     cleared = 0
+    full_rows = []
     for y in range(len(grid) - 1, -1, -1):
         row = grid[y]
         if 0 not in row:
             cleared += 1
-            # Move all rows above this one down
-            for move_y in range(y, 0, -1):
-                for x in range(len(grid[move_y])):
-                    grid[move_y][x] = grid[move_y - 1][x]
-                    locked_positions[move_y][x] = locked_positions[move_y - 1][x]
-            # Clear the top row after moving everything down
-            grid[0] = [0 for _ in range(screen_width // block_size)]
-            locked_positions[0] = [0 for _ in range(screen_width // block_size)]
+            full_rows.append(y)
+
+    # Animate row clearing
+    if full_rows:
+        for row in full_rows:
+            for x in range(len(grid[row])):
+                grid[row][x] = (255, 255, 255)  # Highlight with white color
+        draw_grid(screen, grid)
+        pygame.display.update()
+        pygame.time.delay(300)
+
+    for row in full_rows:
+        for move_y in range(row, 0, -1):
+            for x in range(len(grid[move_y])):
+                grid[move_y][x] = grid[move_y - 1][x]
+                locked_positions[move_y][x] = locked_positions[move_y - 1][x]
+        grid[0] = [0 for _ in range(screen_width // block_size)]
+        locked_positions[0] = [0 for _ in range(screen_width // block_size)]
     return cleared
 
 def draw_grid(surface, grid):
     for y, row in enumerate(grid):
         for x, cell in enumerate(row):
-            pygame.draw.rect(surface, cell if cell else (0, 0, 0), (x * block_size, y * block_size, block_size, block_size), 0)
+            color = cell if isinstance(cell, tuple) else (0, 0, 0)
+            pygame.draw.rect(surface, color, (x * block_size, y * block_size, block_size, block_size), 0)
             pygame.draw.rect(surface, (128, 128, 128), (x * block_size, y * block_size, block_size, block_size), 1)
 
 def main():
