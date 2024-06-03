@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 
 # Initialize Pygame
 pygame.init()
@@ -9,6 +8,18 @@ pygame.init()
 screen_width = 300
 screen_height = 600
 block_size = 30
+
+# Define the screen
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Tetris")
+
+# Game variables
+clock = pygame.time.Clock()
+fall_time = 0
+score = 0
+
+# Load splash screen image
+splash_image = pygame.image.load('tetris.png')
 
 # Define shapes
 shapes = [
@@ -31,11 +42,6 @@ colors = [
     (255, 0, 0),   # Red
     (128, 0, 128)  # Purple
 ]
-
-# Game variables
-grid = [[0 for x in range(screen_width // block_size)] for y in range(screen_height // block_size)]
-clock = pygame.time.Clock()
-fall_time = 0
 
 class Piece:
     def __init__(self, shape):
@@ -74,6 +80,7 @@ def create_grid(locked_positions):
     return grid
 
 def clear_rows(grid, locked_positions):
+    global score
     cleared = 0
     full_rows = []
     for y in range(len(grid) - 1, -1, -1):
@@ -98,6 +105,8 @@ def clear_rows(grid, locked_positions):
                 locked_positions[move_y][x] = locked_positions[move_y - 1][x]
         grid[0] = [0 for _ in range(screen_width // block_size)]
         locked_positions[0] = [0 for _ in range(screen_width // block_size)]
+    
+    score += cleared * 100  # Update score based on cleared rows
     return cleared
 
 def draw_grid(surface, grid):
@@ -107,14 +116,36 @@ def draw_grid(surface, grid):
             pygame.draw.rect(surface, color, (x * block_size, y * block_size, block_size, block_size), 0)
             pygame.draw.rect(surface, (128, 128, 128), (x * block_size, y * block_size, block_size, block_size), 1)
 
+def draw_text(surface, text, size, color, x, y):
+    font = pygame.font.SysFont("comicsans", size)
+    label = font.render(text, 1, color)
+    surface.blit(label, (x, y))
+
+def draw_splash_screen(surface):
+    surface.fill((0, 0, 0))  # Fill background with black before blitting the image
+    splash_rect = splash_image.get_rect(center=(screen_width // 2, screen_height // 2))
+    surface.blit(splash_image, splash_rect)
+    pygame.display.update()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                waiting = False
+
 def main():
-    global grid
+    global grid, score
     locked_positions = [[0 for _ in range(screen_width // block_size)] for _ in range(screen_height // block_size)]
     current_piece = Piece(random.choice(shapes))
     next_piece = Piece(random.choice(shapes))
     run = True
     fall_speed = 0.27
     fall_time = 0
+
+    draw_splash_screen(screen)
     
     while run:
         grid = create_grid(locked_positions)
@@ -153,11 +184,15 @@ def main():
             for x, cell in enumerate(row):
                 if cell:
                     pygame.draw.rect(screen, current_piece.color, (current_piece.x * block_size + x * block_size, current_piece.y * block_size + y * block_size, block_size, block_size), 0)
+        
+        draw_text(screen, f"Score: {score}", 30, (255, 255, 255), 10, 10)
         pygame.display.update()
         cleared = clear_rows(grid, locked_positions)
 
+    screen.fill((0, 0, 0))  # Fill the screen with black before showing "Game Over"
+    draw_text(screen, "Game Over", 60, (255, 0, 0), screen_width // 2 - 150, screen_height // 2 - 30)
+    pygame.display.update()
+    pygame.time.delay(2000)
     pygame.quit()
 
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Tetris")
 main()
